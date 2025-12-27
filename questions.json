@@ -1,316 +1,511 @@
-import json
-from pathlib import Path
-from datetime import datetime, timezone
-from typing import Dict, Any, List, Tuple
+{
+  "version": 1,
+  "title": "Capacity & Strain (Higher = Worse)",
+  "items": [
+    {
+      "id": "Q1",
+      "type": "choice",
+      "domain": "capacity",
+      "construct": "load_vs_capacity",
+      "prompt": "When demands increase faster than available capacity, what happens first?",
+      "choices": [
+        "Effort is redistributed internally",
+        "Non-essential activity is deferred",
+        "Output quality becomes uneven",
+        "Short-term throughput is prioritized",
+        "Coordination becomes harder"
+      ],
+      "weights": {
+        "Effort is redistributed internally": 2,
+        "Non-essential activity is deferred": 3,
+        "Output quality becomes uneven": 4,
+        "Short-term throughput is prioritized": 4,
+        "Coordination becomes harder": 5
+      }
+    },
+    {
+      "id": "Q2",
+      "type": "choice",
+      "domain": "feedback",
+      "construct": "feedback_latency",
+      "prompt": "When results are slow to appear, how does the system proceed?",
+      "choices": [
+        "It continues based on prior assumptions",
+        "It pauses to reassess direction",
+        "It seeks informal signals",
+        "It increases activity to compensate",
+        "It narrows focus to fewer actions"
+      ],
+      "weights": {
+        "It continues based on prior assumptions": 3,
+        "It pauses to reassess direction": 2,
+        "It seeks informal signals": 2,
+        "It increases activity to compensate": 4,
+        "It narrows focus to fewer actions": 3
+      }
+    },
+    {
+      "id": "Q3",
+      "type": "choice",
+      "domain": "coherence",
+      "construct": "effort_to_progress",
+      "prompt": "When effort does not reliably translate into progress, what emerges?",
+      "choices": [
+        "Process refinement",
+        "Frustration without action",
+        "Experimentation",
+        "Reduced engagement",
+        "Overextension"
+      ],
+      "weights": {
+        "Process refinement": 2,
+        "Frustration without action": 4,
+        "Experimentation": 2,
+        "Reduced engagement": 5,
+        "Overextension": 4
+      }
+    },
+    {
+      "id": "Q4",
+      "type": "choice",
+      "domain": "control",
+      "construct": "constraint_clarity",
+      "prompt": "When constraints are unclear, what tends to change first?",
+      "choices": [
+        "Decision speed",
+        "Confidence in choices",
+        "Internal coordination",
+        "Willingness to commit",
+        "Attention distribution"
+      ],
+      "weights": {
+        "Decision speed": 3,
+        "Confidence in choices": 4,
+        "Internal coordination": 5,
+        "Willingness to commit": 4,
+        "Attention distribution": 3
+      }
+    },
+    {
+      "id": "Q5",
+      "type": "choice",
+      "domain": "persistence",
+      "construct": "sustained_strain",
+      "prompt": "When strain persists without a clear endpoint, what shifts first?",
+      "choices": [
+        "Energy allocation",
+        "Error tolerance",
+        "Planning horizon",
+        "Communication clarity",
+        "Internal alignment"
+      ],
+      "weights": {
+        "Energy allocation": 4,
+        "Error tolerance": 3,
+        "Planning horizon": 5,
+        "Communication clarity": 4,
+        "Internal alignment": 5
+      }
+    },
+    {
+      "id": "Q6",
+      "type": "choice",
+      "domain": "adaptation",
+      "construct": "failed_correction",
+      "prompt": "When corrective actions do not produce relief, what follows?",
+      "choices": [
+        "New strategies are tested",
+        "Existing methods are intensified",
+        "Scope is reduced",
+        "Doubt increases",
+        "Stability degrades"
+      ],
+      "weights": {
+        "New strategies are tested": 2,
+        "Existing methods are intensified": 4,
+        "Scope is reduced": 3,
+        "Doubt increases": 5,
+        "Stability degrades": 5
+      }
+    },
+    {
+      "id": "Q7",
+      "type": "choice",
+      "domain": "recovery",
+      "construct": "capacity_recovery",
+      "prompt": "When recovery time shortens repeatedly, what changes?",
+      "choices": [
+        "Throughput",
+        "Precision",
+        "Risk tolerance",
+        "Adaptability",
+        "Sustainability"
+      ],
+      "weights": {
+        "Throughput": 3,
+        "Precision": 4,
+        "Risk tolerance": 3,
+        "Adaptability": 2,
+        "Sustainability": 5
+      }
+    },
+    {
+      "id": "Q8",
+      "type": "choice",
+      "domain": "error",
+      "construct": "error_accumulation",
+      "prompt": "When errors accumulate faster than they can be resolved, what emerges?",
+      "choices": [
+        "Workarounds",
+        "Process breakdown",
+        "Blame shifting",
+        "Increased oversight",
+        "System fatigue"
+      ],
+      "weights": {
+        "Workarounds": 3,
+        "Process breakdown": 5,
+        "Blame shifting": 4,
+        "Increased oversight": 3,
+        "System fatigue": 5
+      }
+    },
 
-
-HISTORY_FILE = "history.jsonl"  # append-only; safest for logging
-
-
-KILL_SWITCH_PLAYBOOK = {
-    "capacity": [
-        "Cut scope to the smallest shippable unit.",
-        "Freeze new commitments for 24 hours.",
-        "Protect 1–2 core tasks only."
-    ],
-    "feedback": [
-        "Stop guessing. Create a single measurable test.",
-        "Reduce to one feedback channel.",
-        "If feedback is slow, shorten the loop (smaller experiments)."
-    ],
-    "coherence": [
-        "Remove context switching: pick one thread and finish a chunk.",
-        "Rewrite the goal in one sentence and delete any task that doesn’t serve it.",
-        "If reactive, schedule one deliberate block."
-    ],
-    "control": [
-        "Clarify constraints: write the top 3 constraints explicitly.",
-        "Make one decision irreversible for today; defer the rest.",
-        "Set a hard boundary for time/attention."
-    ],
-    "persistence": [
-        "Lower pace to sustainable minimum.",
-        "Plan only the next 6–12 hours (not the week).",
-        "If endurance is hours, stop non-essential work immediately."
-    ],
-    "recovery": [
-        "Mandatory recovery block (even 20–40 minutes).",
-        "Reduce stimulants/spiral inputs; increase passive recovery.",
-        "If severely deprived, do not attempt complex tasks."
-    ],
-    "error": [
-        "Stop shipping new changes; stabilize and fix leaks.",
-        "Introduce a checklist step before ‘done’.",
-        "If rework dominates, reduce complexity and revert risky changes."
-    ],
-    "adaptation": [
-        "Change one variable at a time (no shotgun changes).",
-        "Prefer simplification over intensity.",
-        "If you’re adding complexity, you’re probably losing—cut it."
-    ]
+    {
+      "id": "Q9",
+      "type": "choice",
+      "domain": "capacity",
+      "construct": "buffer_margin",
+      "prompt": "When an unexpected task arrives, what happens to the current plan?",
+      "choices": [
+        "Plan absorbs it with no changes",
+        "Minor reshuffle and continue",
+        "A key task gets delayed",
+        "Multiple tasks slip at once",
+        "Everything becomes reactive"
+      ],
+      "weights": {
+        "Plan absorbs it with no changes": 1,
+        "Minor reshuffle and continue": 2,
+        "A key task gets delayed": 3,
+        "Multiple tasks slip at once": 4,
+        "Everything becomes reactive": 5
+      }
+    },
+    {
+      "id": "Q10",
+      "type": "choice",
+      "domain": "control",
+      "construct": "decision_friction",
+      "prompt": "When you need to decide fast, what blocks you first?",
+      "choices": [
+        "Nothing — decisions are clean",
+        "Missing one key detail",
+        "Too many competing priorities",
+        "Second-guessing / doubt",
+        "Fear of downstream consequences"
+      ],
+      "weights": {
+        "Nothing — decisions are clean": 1,
+        "Missing one key detail": 2,
+        "Too many competing priorities": 4,
+        "Second-guessing / doubt": 4,
+        "Fear of downstream consequences": 5
+      }
+    },
+    {
+      "id": "Q11",
+      "type": "choice",
+      "domain": "feedback",
+      "construct": "signal_quality",
+      "prompt": "What is the quality of feedback you’re getting from the environment right now?",
+      "choices": [
+        "Clear and fast",
+        "Clear but slow",
+        "Mixed signals",
+        "Mostly noise",
+        "No feedback / blind"
+      ],
+      "weights": {
+        "Clear and fast": 1,
+        "Clear but slow": 2,
+        "Mixed signals": 3,
+        "Mostly noise": 4,
+        "No feedback / blind": 5
+      }
+    },
+    {
+      "id": "Q12",
+      "type": "choice",
+      "domain": "coherence",
+      "construct": "goal_alignment",
+      "prompt": "How aligned are your actions with the stated goal right now?",
+      "choices": [
+        "Directly aligned",
+        "Mostly aligned",
+        "Half aligned / half distraction",
+        "Mostly reactive",
+        "Not aligned at all"
+      ],
+      "weights": {
+        "Directly aligned": 1,
+        "Mostly aligned": 2,
+        "Half aligned / half distraction": 3,
+        "Mostly reactive": 4,
+        "Not aligned at all": 5
+      }
+    },
+    {
+      "id": "Q13",
+      "type": "choice",
+      "domain": "persistence",
+      "construct": "endurance_curve",
+      "prompt": "If nothing changes, how long can you sustain the current pace before something breaks?",
+      "choices": [
+        "Weeks+",
+        "Several days",
+        "1–2 days",
+        "Hours",
+        "Already breaking"
+      ],
+      "weights": {
+        "Weeks+": 1,
+        "Several days": 2,
+        "1–2 days": 3,
+        "Hours": 4,
+        "Already breaking": 5
+      }
+    },
+    {
+      "id": "Q14",
+      "type": "choice",
+      "domain": "recovery",
+      "construct": "sleep_quality",
+      "prompt": "What is your recovery quality (sleep/rest) over the last 48 hours?",
+      "choices": [
+        "Restorative",
+        "Okay",
+        "Light / fragmented",
+        "Poor",
+        "Severely deprived"
+      ],
+      "weights": {
+        "Restorative": 1,
+        "Okay": 2,
+        "Light / fragmented": 3,
+        "Poor": 4,
+        "Severely deprived": 5
+      }
+    },
+    {
+      "id": "Q15",
+      "type": "choice",
+      "domain": "error",
+      "construct": "mistake_rate",
+      "prompt": "Compared to normal, your mistake rate is…",
+      "choices": [
+        "Lower than normal",
+        "Normal",
+        "Slightly higher",
+        "High",
+        "Unmanageable"
+      ],
+      "weights": {
+        "Lower than normal": 1,
+        "Normal": 2,
+        "Slightly higher": 3,
+        "High": 4,
+        "Unmanageable": 5
+      }
+    },
+    {
+      "id": "Q16",
+      "type": "choice",
+      "domain": "adaptation",
+      "construct": "strategy_shift",
+      "prompt": "When something fails, what is your typical next move?",
+      "choices": [
+        "Simplify and re-try",
+        "Change one variable",
+        "Add more effort",
+        "Add more complexity",
+        "Freeze / avoid"
+      ],
+      "weights": {
+        "Simplify and re-try": 1,
+        "Change one variable": 2,
+        "Add more effort": 3,
+        "Add more complexity": 4,
+        "Freeze / avoid": 5
+      }
+    },
+    {
+      "id": "Q17",
+      "type": "choice",
+      "domain": "control",
+      "construct": "boundary_integrity",
+      "prompt": "How well are your boundaries holding (time, attention, obligations)?",
+      "choices": [
+        "Strong",
+        "Mostly holding",
+        "Leaking",
+        "Collapsed",
+        "No boundaries"
+      ],
+      "weights": {
+        "Strong": 1,
+        "Mostly holding": 2,
+        "Leaking": 3,
+        "Collapsed": 4,
+        "No boundaries": 5
+      }
+    },
+    {
+      "id": "Q18",
+      "type": "choice",
+      "domain": "feedback",
+      "construct": "external_validation",
+      "prompt": "When you seek input, what do you get most often?",
+      "choices": [
+        "Actionable guidance",
+        "Encouragement but no clarity",
+        "Conflicting advice",
+        "Dismissal / ridicule",
+        "Silence"
+      ],
+      "weights": {
+        "Actionable guidance": 1,
+        "Encouragement but no clarity": 2,
+        "Conflicting advice": 3,
+        "Dismissal / ridicule": 4,
+        "Silence": 4
+      }
+    },
+    {
+      "id": "Q19",
+      "type": "choice",
+      "domain": "coherence",
+      "construct": "context_switching",
+      "prompt": "How much context switching are you doing today?",
+      "choices": [
+        "Almost none",
+        "Some",
+        "A lot",
+        "Constant",
+        "Uncontrolled"
+      ],
+      "weights": {
+        "Almost none": 1,
+        "Some": 2,
+        "A lot": 3,
+        "Constant": 4,
+        "Uncontrolled": 5
+      }
+    },
+    {
+      "id": "Q20",
+      "type": "choice",
+      "domain": "capacity",
+      "construct": "resource_availability",
+      "prompt": "Right now, do you have the resources needed to execute (tools/time/money/access)?",
+      "choices": [
+        "Yes, sufficient",
+        "Mostly",
+        "Barely",
+        "No, constrained",
+        "No, blocked"
+      ],
+      "weights": {
+        "Yes, sufficient": 1,
+        "Mostly": 2,
+        "Barely": 3,
+        "No, constrained": 4,
+        "No, blocked": 5
+      }
+    },
+    {
+      "id": "Q21",
+      "type": "choice",
+      "domain": "persistence",
+      "construct": "motivation_stability",
+      "prompt": "What best describes your motivational state right now?",
+      "choices": [
+        "Steady",
+        "Wobbly but present",
+        "Driven by urgency only",
+        "Mostly depleted",
+        "Numb / detached"
+      ],
+      "weights": {
+        "Steady": 1,
+        "Wobbly but present": 2,
+        "Driven by urgency only": 3,
+        "Mostly depleted": 4,
+        "Numb / detached": 5
+      }
+    },
+    {
+      "id": "Q22",
+      "type": "choice",
+      "domain": "recovery",
+      "construct": "reset_access",
+      "prompt": "If you needed to reset for 2–4 hours, could you?",
+      "choices": [
+        "Yes, easily",
+        "Yes, with planning",
+        "Maybe, with cost",
+        "Unlikely",
+        "No"
+      ],
+      "weights": {
+        "Yes, easily": 1,
+        "Yes, with planning": 2,
+        "Maybe, with cost": 3,
+        "Unlikely": 4,
+        "No": 5
+      }
+    },
+    {
+      "id": "Q23",
+      "type": "choice",
+      "domain": "error",
+      "construct": "rework_pressure",
+      "prompt": "How much of today’s work is rework (fixing, redoing, repairing)?",
+      "choices": [
+        "Almost none",
+        "Some",
+        "A lot",
+        "Most of it",
+        "All of it"
+      ],
+      "weights": {
+        "Almost none": 1,
+        "Some": 2,
+        "A lot": 3,
+        "Most of it": 4,
+        "All of it": 5
+      }
+    },
+    {
+      "id": "Q24",
+      "type": "choice",
+      "domain": "adaptation",
+      "construct": "learning_loop",
+      "prompt": "Are you learning fast enough to keep up with the situation?",
+      "choices": [
+        "Yes",
+        "Mostly",
+        "Unclear",
+        "No, falling behind",
+        "No, losing ground"
+      ],
+      "weights": {
+        "Yes": 1,
+        "Mostly": 2,
+        "Unclear": 3,
+        "No, falling behind": 4,
+        "No, losing ground": 5
+      }
+    }
+  ]
 }
-
-
-def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def load_questions(path: Path) -> Dict[str, Any]:
-    if not path.exists():
-        raise FileNotFoundError(f"Missing file: {path.name} (expected next to app.py)")
-
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as e:
-        raise ValueError(f"{path.name} is not valid JSON: {e}") from e
-
-    if not isinstance(data, dict):
-        raise ValueError("questions.json must be a JSON object")
-
-    items = data.get("items")
-    if not isinstance(items, list) or not items:
-        raise ValueError("questions.json must contain non-empty 'items' list")
-
-    for i, q in enumerate(items, start=1):
-        for key in ("id", "type", "prompt", "choices", "weights"):
-            if key not in q:
-                raise ValueError(f"items[{i}] missing '{key}'")
-        if q["type"] != "choice":
-            raise ValueError(f"items[{i}] only supports type='choice' right now")
-        if not isinstance(q["choices"], list) or not q["choices"]:
-            raise ValueError(f"items[{i}] choices must be non-empty list")
-        if not isinstance(q["weights"], dict) or not q["weights"]:
-            raise ValueError(f"items[{i}] weights must be non-empty object")
-        for c in q["choices"]:
-            if c not in q["weights"]:
-                raise ValueError(f"items[{i}] missing weight for choice: {c}")
-
-    return data
-
-
-def ask_choice(prompt: str, choices: List[str]) -> str:
-    print(f"\n{prompt}")
-    for idx, c in enumerate(choices, start=1):
-        print(f"  {idx}) {c}")
-    while True:
-        raw = input("> ").strip()
-        if raw.isdigit():
-            n = int(raw)
-            if 1 <= n <= len(choices):
-                return choices[n - 1]
-        if raw in choices:
-            return raw
-        print("Pick a number from the list (or type the option exactly).")
-
-
-def band(total: int, max_total: int) -> Tuple[str, str]:
-    if max_total <= 0:
-        return ("UNKNOWN", "No scoring range.")
-    ratio = total / max_total
-    if ratio >= 0.70:
-        return ("RED", "Overload likely. Reduce scope and protect core functions.")
-    if ratio >= 0.45:
-        return ("YELLOW", "Strain rising. Simplify and tighten the loop.")
-    return ("GREEN", "Stable relative to current load.")
-
-
-def append_history(base: Path, record: Dict[str, Any]) -> None:
-    path = base / HISTORY_FILE
-    with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record) + "\n")
-
-
-def read_history(base: Path, limit: int = 30) -> List[Dict[str, Any]]:
-    path = base / HISTORY_FILE
-    if not path.exists():
-        return []
-    rows = []
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                rows.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-    return rows[-limit:]
-
-
-def trend(history: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Simple, robust trend: compare last value to mean of previous runs.
-    Also compute direction over last 3 points if available.
-    """
-    ratios = [h.get("ratio", 0) for h in history if isinstance(h.get("ratio"), (int, float))]
-    if len(ratios) < 2:
-        return {"status": "insufficient", "note": "Need at least 2 runs."}
-
-    last = ratios[-1]
-    prev = ratios[:-1]
-    prev_mean = sum(prev) / len(prev) if prev else last
-
-    delta_vs_mean = last - prev_mean
-
-    # last 3 slope
-    slope_note = "unknown"
-    if len(ratios) >= 3:
-        a, b, c = ratios[-3], ratios[-2], ratios[-1]
-        if c > b > a:
-            slope_note = "rising"
-        elif c < b < a:
-            slope_note = "falling"
-        else:
-            slope_note = "mixed"
-
-    return {
-        "status": "ok",
-        "last_ratio": round(last, 3),
-        "prev_mean_ratio": round(prev_mean, 3),
-        "delta_vs_mean": round(delta_vs_mean, 3),
-        "last3_pattern": slope_note
-    }
-
-
-def kill_switch_plan(band_label: str, domain_report: List[Dict[str, Any]], t: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Trigger kill-switch if:
-      - band is RED, or
-      - trend is rising AND last ratio >= 0.55, or
-      - delta vs mean >= +0.10 (sharp spike)
-    """
-    trigger = False
-    reasons = []
-
-    if band_label == "RED":
-        trigger = True
-        reasons.append("Band is RED (overload).")
-
-    if t.get("status") == "ok":
-        if t.get("last3_pattern") == "rising" and t.get("last_ratio", 0) >= 0.55:
-            trigger = True
-            reasons.append("Trend rising with elevated strain.")
-        if t.get("delta_vs_mean", 0) >= 0.10:
-            trigger = True
-            reasons.append("Sharp spike vs recent baseline.")
-
-    # Pick top 2 worst domains by ratio
-    worst = sorted(domain_report, key=lambda r: r.get("ratio", 0), reverse=True)[:2]
-    actions = []
-    for w in worst:
-        d = w["domain"]
-        steps = KILL_SWITCH_PLAYBOOK.get(d, ["Cut scope.", "Protect core.", "Reduce complexity."])
-        actions.append({"domain": d, "ratio": w.get("ratio"), "steps": steps})
-
-    return {
-        "triggered": trigger,
-        "reasons": reasons,
-        "focus_domains": actions
-    }
-
-
-def main():
-    base = Path(__file__).resolve().parent
-    qpath = base / "questions.json"
-    questions = load_questions(qpath)
-
-    answers: Dict[str, str] = {}
-    breakdown = []
-    domain_totals: Dict[str, int] = {}
-    domain_max: Dict[str, int] = {}
-
-    total = 0
-    max_total = 0
-
-    for q in questions["items"]:
-        ans = ask_choice(q["prompt"], q["choices"])
-        pts = int(q["weights"][ans])
-        d = q.get("domain", "general")
-
-        answers[q["id"]] = ans
-        breakdown.append({
-            "id": q["id"],
-            "domain": d,
-            "construct": q.get("construct"),
-            "answer": ans,
-            "points": pts
-        })
-
-        total += pts
-        max_pts_for_q = max(int(v) for v in q["weights"].values())
-        max_total += max_pts_for_q
-
-        domain_totals[d] = domain_totals.get(d, 0) + pts
-        domain_max[d] = domain_max.get(d, 0) + max_pts_for_q
-
-    ratio = (total / max_total) if max_total else 0.0
-    band_label, band_note = band(total, max_total)
-
-    domain_report = []
-    for d, pts in domain_totals.items():
-        dmax = domain_max.get(d, 0)
-        r = (pts / dmax) if dmax else 0.0
-        domain_report.append({
-            "domain": d,
-            "points": pts,
-            "max_points": dmax,
-            "ratio": round(r, 3)
-        })
-    domain_report.sort(key=lambda x: x["ratio"], reverse=True)
-
-    record = {
-        "ts": now_iso(),
-        "total_points": total,
-        "max_points": max_total,
-        "ratio": round(ratio, 3),
-        "band": band_label,
-        "domain_report": domain_report,
-        "answers": answers
-    }
-
-    append_history(base, record)
-
-    hist = read_history(base, limit=30)
-    t = trend(hist)
-    ks = kill_switch_plan(band_label, domain_report, t)
-
-    # Write latest outputs
-    (base / "answers.json").write_text(json.dumps(answers, indent=2), encoding="utf-8")
-    (base / "results.json").write_text(json.dumps({
-        **record,
-        "band_note": band_note,
-        "trend": t,
-        "kill_switch": ks
-    }, indent=2), encoding="utf-8")
-
-    print("\n====================")
-    print(f"TOTAL: {total}/{max_total}  ratio={round(ratio,3)}")
-    print(f"BAND:  {band_label} — {band_note}")
-    if t.get("status") == "ok":
-        print(f"TREND: last={t['last_ratio']} prev_mean={t['prev_mean_ratio']} delta={t['delta_vs_mean']} pattern={t['last3_pattern']}")
-    else:
-        print("TREND: need more runs")
-    print("====================\n")
-
-    print("Worst domains (highest strain first):")
-    for row in domain_report[:3]:
-        print(f"- {row['domain']}: {row['points']}/{row['max_points']} (ratio {row['ratio']})")
-
-    if ks["triggered"]:
-        print("\nKILL SWITCH: TRIGGERED")
-        for r in ks["reasons"]:
-            print(f"- {r}")
-        print("\nDo this now (focus domains):")
-        for a in ks["focus_domains"]:
-            print(f"\n[{a['domain']}] (ratio {a.get('ratio')})")
-            for s in a["steps"]:
-                print(f"  - {s}")
-    else:
-        print("\nKILL SWITCH: not triggered (yet).")
-
-    print(f"\nLogged run → {HISTORY_FILE}")
-    print("Saved: answers.json, results.json")
-
-
-if __name__ == "__main__":
-    main()

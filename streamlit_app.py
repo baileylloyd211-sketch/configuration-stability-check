@@ -1,10 +1,4 @@
-import streamlit as st
-st.write("CHECKPOINT 1: streamlit imported")import engine
-st.write("CHECKPOINT 2: engine imported")from pathlib import Path
-st.write("CHECKPOINT 3: pathlib ok")base = Path(__file__).resolve().parent
-questions_path = base / "questions.json"
-st.write("CHECKPOINT 4: path set", str(questions_path))questions = engine.load_questions(questions_path)
-st.write("CHECKPOINT 5: questions loaded", len(questions["items"]))import json
+import json
 from pathlib import Path
 import streamlit as st
 

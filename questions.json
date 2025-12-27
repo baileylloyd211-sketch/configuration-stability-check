@@ -1,14 +1,12 @@
 {
   "version": 1,
-  "title": "Questions",
+  "title": "Capacity & Strain (Higher = Worse)",
   "items": [
     {
       "id": "Q1",
       "type": "choice",
       "domain": "capacity",
       "construct": "load_vs_capacity",
-      "grammar": "outcome_first",
-      "skin": "general",
       "prompt": "When demands increase faster than available capacity, what happens first?",
       "choices": [
         "Effort is redistributed internally",
@@ -21,7 +19,7 @@
         "Effort is redistributed internally": 2,
         "Non-essential activity is deferred": 3,
         "Output quality becomes uneven": 4,
-        "Short-term throughput is prioritized": 3,
+        "Short-term throughput is prioritized": 4,
         "Coordination becomes harder": 5
       }
     },
@@ -30,8 +28,6 @@
       "type": "choice",
       "domain": "feedback",
       "construct": "feedback_latency",
-      "grammar": "process_first",
-      "skin": "general",
       "prompt": "When results are slow to appear, how does the system proceed?",
       "choices": [
         "It continues based on prior assumptions",
@@ -53,8 +49,6 @@
       "type": "choice",
       "domain": "coherence",
       "construct": "effort_to_progress",
-      "grammar": "emergence",
-      "skin": "general",
       "prompt": "When effort does not reliably translate into progress, what emerges?",
       "choices": [
         "Process refinement",
@@ -76,8 +70,6 @@
       "type": "choice",
       "domain": "control",
       "construct": "constraint_clarity",
-      "grammar": "signal_shift",
-      "skin": "general",
       "prompt": "When constraints are unclear, what tends to change first?",
       "choices": [
         "Decision speed",
@@ -99,8 +91,6 @@
       "type": "choice",
       "domain": "persistence",
       "construct": "sustained_strain",
-      "grammar": "time_course",
-      "skin": "general",
       "prompt": "When strain persists without a clear endpoint, what shifts first?",
       "choices": [
         "Energy allocation",
@@ -122,8 +112,6 @@
       "type": "choice",
       "domain": "adaptation",
       "construct": "failed_correction",
-      "grammar": "response_chain",
-      "skin": "general",
       "prompt": "When corrective actions do not produce relief, what follows?",
       "choices": [
         "New strategies are tested",
@@ -145,8 +133,6 @@
       "type": "choice",
       "domain": "recovery",
       "construct": "capacity_recovery",
-      "grammar": "resource_signal",
-      "skin": "general",
       "prompt": "When recovery time shortens repeatedly, what changes?",
       "choices": [
         "Throughput",
@@ -168,8 +154,6 @@
       "type": "choice",
       "domain": "error",
       "construct": "error_accumulation",
-      "grammar": "system_state",
-      "skin": "general",
       "prompt": "When errors accumulate faster than they can be resolved, what emerges?",
       "choices": [
         "Workarounds",
@@ -185,6 +169,200 @@
         "Increased oversight": 3,
         "System fatigue": 5
       }
-    }
-  ]
-}
+    },
+
+    {
+      "id": "Q9",
+      "type": "choice",
+      "domain": "capacity",
+      "construct": "buffer_margin",
+      "prompt": "When an unexpected task arrives, what happens to the current plan?",
+      "choices": [
+        "Plan absorbs it with no changes",
+        "Minor reshuffle and continue",
+        "A key task gets delayed",
+        "Multiple tasks slip at once",
+        "Everything becomes reactive"
+      ],
+      "weights": {
+        "Plan absorbs it with no changes": 1,
+        "Minor reshuffle and continue": 2,
+        "A key task gets delayed": 3,
+        "Multiple tasks slip at once": 4,
+        "Everything becomes reactive": 5
+      }
+    },
+    {
+      "id": "Q10",
+      "type": "choice",
+      "domain": "control",
+      "construct": "decision_friction",
+      "prompt": "When you need to decide fast, what blocks you first?",
+      "choices": [
+        "Nothing — decisions are clean",
+        "Missing one key detail",
+        "Too many competing priorities",
+        "Second-guessing / doubt",
+        "Fear of downstream consequences"
+      ],
+      "weights": {
+        "Nothing — decisions are clean": 1,
+        "Missing one key detail": 2,
+        "Too many competing priorities": 4,
+        "Second-guessing / doubt": 4,
+        "Fear of downstream consequences": 5
+      }
+    },
+    {
+      "id": "Q11",
+      "type": "choice",
+      "domain": "feedback",
+      "construct": "signal_quality",
+      "prompt": "What is the quality of feedback you’re getting from the environment right now?",
+      "choices": [
+        "Clear and fast",
+        "Clear but slow",
+        "Mixed signals",
+        "Mostly noise",
+        "No feedback / blind"
+      ],
+      "weights": {
+        "Clear and fast": 1,
+        "Clear but slow": 2,
+        "Mixed signals": 3,
+        "Mostly noise": 4,
+        "No feedback / blind": 5
+      }
+    },
+    {
+      "id": "Q12",
+      "type": "choice",
+      "domain": "coherence",
+      "construct": "goal_alignment",
+      "prompt": "How aligned are your actions with the stated goal right now?",
+      "choices": [
+        "Directly aligned",
+        "Mostly aligned",
+        "Half aligned / half distraction",
+        "Mostly reactive",
+        "Not aligned at all"
+      ],
+      "weights": {
+        "Directly aligned": 1,
+        "Mostly aligned": 2,
+        "Half aligned / half distraction": 3,
+        "Mostly reactive": 4,
+        "Not aligned at all": 5
+      }
+    },
+    {
+      "id": "Q13",
+      "type": "choice",
+      "domain": "persistence",
+      "construct": "endurance_curve",
+      "prompt": "If nothing changes, how long can you sustain the current pace before something breaks?",
+      "choices": [
+        "Weeks+",
+        "Several days",
+        "1–2 days",
+        "Hours",
+        "Already breaking"
+      ],
+      "weights": {
+        "Weeks+": 1,
+        "Several days": 2,
+        "1–2 days": 3,
+        "Hours": 4,
+        "Already breaking": 5
+      }
+    },
+    {
+      "id": "Q14",
+      "type": "choice",
+      "domain": "recovery",
+      "construct": "sleep_quality",
+      "prompt": "What is your recovery quality (sleep/rest) over the last 48 hours?",
+      "choices": [
+        "Restorative",
+        "Okay",
+        "Light / fragmented",
+        "Poor",
+        "Severely deprived"
+      ],
+      "weights": {
+        "Restorative": 1,
+        "Okay": 2,
+        "Light / fragmented": 3,
+        "Poor": 4,
+        "Severely deprived": 5
+      }
+    },
+    {
+      "id": "Q15",
+      "type": "choice",
+      "domain": "error",
+      "construct": "mistake_rate",
+      "prompt": "Compared to normal, your mistake rate is…",
+      "choices": [
+        "Lower than normal",
+        "Normal",
+        "Slightly higher",
+        "High",
+        "Unmanageable"
+      ],
+      "weights": {
+        "Lower than normal": 1,
+        "Normal": 2,
+        "Slightly higher": 3,
+        "High": 4,
+        "Unmanageable": 5
+      }
+    },
+    {
+      "id": "Q16",
+      "type": "choice",
+      "domain": "adaptation",
+      "construct": "strategy_shift",
+      "prompt": "When something fails, what is your typical next move?",
+      "choices": [
+        "Simplify and re-try",
+        "Change one variable",
+        "Add more effort",
+        "Add more complexity",
+        "Freeze / avoid"
+      ],
+      "weights": {
+        "Simplify and re-try": 1,
+        "Change one variable": 2,
+        "Add more effort": 3,
+        "Add more complexity": 4,
+        "Freeze / avoid": 5
+      }
+    },
+    {
+      "id": "Q17",
+      "type": "choice",
+      "domain": "control",
+      "construct": "boundary_integrity",
+      "prompt": "How well are your boundaries holding (time, attention, obligations)?",
+      "choices": [
+        "Strong",
+        "Mostly holding",
+        "Leaking",
+        "Collapsed",
+        "No boundaries"
+      ],
+      "weights": {
+        "Strong": 1,
+        "Mostly holding": 2,
+        "Leaking": 3,
+        "Collapsed": 4,
+        "No boundaries": 5
+      }
+    },
+    {
+      "id": "Q18",
+      "type": "choice",
+      "domain": "feedback",
+      "construct": "external_validation",
+      "

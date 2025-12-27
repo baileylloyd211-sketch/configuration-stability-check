@@ -70,3 +70,8 @@ Those features are explicitly out of scope for v1.
 ---
 
 ## Project Structure
+## Project Structure (Do Not Change Without Reason)
+
+- main.py handles execution
+- questions.json contains all question data
+- Do not rename or move files without updating imports

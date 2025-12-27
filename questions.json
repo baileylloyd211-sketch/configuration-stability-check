@@ -32,7 +32,45 @@ QUESTIONS = [
             "It narrows focus to fewer actions",
         ],
     },
+    {{
+  "version": 1,
+  "title": "Questions",
+  "items": [
     {
+      "id": "q1",
+      "prompt": "What are you trying to accomplish right now?",
+      "type": "text",
+      "required": true,
+      "score": {
+        "method": "length",
+        "min_chars": 20,
+        "max_points": 5
+      }
+    },
+    {
+      "id": "q2",
+      "prompt": "How urgent is this?",
+      "type": "choice",
+      "choices": ["low", "medium", "high"],
+      "required": true,
+      "weights": {
+        "low": 1,
+        "medium": 3,
+        "high": 5
+      }
+    },
+    {
+      "id": "q3",
+      "prompt": "Any constraints I should know?",
+      "type": "text",
+      "required": false,
+      "score": {
+        "method": "presence",
+        "points_if_nonempty": 2
+      }
+    }
+  ]
+    }
         "id": "Q3",
         "domain": "coherence",
         "construct": "effort_to_progress",

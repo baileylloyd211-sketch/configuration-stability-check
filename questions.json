@@ -1,223 +1,190 @@
-# questions.py
-# v1 question pool — system-level probes
-
-QUESTIONS = [
-    {
-        "id": "Q1",
-        "domain": "load_capacity",
-        "construct": "load_vs_capacity",
-        "grammar": "outcome_first",
-        "skin": "general",
-        "prompt": "When demands increase faster than available capacity, what happens first?",
-        "options": [
-            "Effort is redistributed internally",
-            "Non-essential activity is deferred",
-            "Output quality becomes uneven",
-            "Short-term throughput is prioritized",
-            "Coordination becomes harder",
-        ],
-    },
-    {
-        "id": "Q2",
-        "domain": "feedback",
-        "construct": "feedback_latency",
-        "grammar": "process_first",
-        "skin": "general",
-        "prompt": "When results are slow to appear, how does the system proceed?",
-        "options": [
-            "It continues based on prior assumptions",
-            "It pauses to reassess direction",
-            "It seeks informal signals",
-            "It increases activity to compensate",
-            "It narrows focus to fewer actions",
-        ],
-    },
-    {{
+{
   "version": 1,
   "title": "Questions",
   "items": [
     {
-      "id": "q1",
-      "prompt": "What are you trying to accomplish right now?",
-      "type": "text",
-      "required": true,
-      "score": {
-        "method": "length",
-        "min_chars": 20,
-        "max_points": 5
-      }
-    },
-    {
-      "id": "q2",
-      "prompt": "How urgent is this?",
+      "id": "Q1",
       "type": "choice",
-      "choices": ["low", "medium", "high"],
-      "required": true,
+      "domain": "capacity",
+      "construct": "load_vs_capacity",
+      "grammar": "outcome_first",
+      "skin": "general",
+      "prompt": "When demands increase faster than available capacity, what happens first?",
+      "choices": [
+        "Effort is redistributed internally",
+        "Non-essential activity is deferred",
+        "Output quality becomes uneven",
+        "Short-term throughput is prioritized",
+        "Coordination becomes harder"
+      ],
       "weights": {
-        "low": 1,
-        "medium": 3,
-        "high": 5
+        "Effort is redistributed internally": 2,
+        "Non-essential activity is deferred": 3,
+        "Output quality becomes uneven": 4,
+        "Short-term throughput is prioritized": 3,
+        "Coordination becomes harder": 5
       }
     },
     {
-      "id": "q3",
-      "prompt": "Any constraints I should know?",
-      "type": "text",
-      "required": false,
-      "score": {
-        "method": "presence",
-        "points_if_nonempty": 2
+      "id": "Q2",
+      "type": "choice",
+      "domain": "feedback",
+      "construct": "feedback_latency",
+      "grammar": "process_first",
+      "skin": "general",
+      "prompt": "When results are slow to appear, how does the system proceed?",
+      "choices": [
+        "It continues based on prior assumptions",
+        "It pauses to reassess direction",
+        "It seeks informal signals",
+        "It increases activity to compensate",
+        "It narrows focus to fewer actions"
+      ],
+      "weights": {
+        "It continues based on prior assumptions": 3,
+        "It pauses to reassess direction": 2,
+        "It seeks informal signals": 2,
+        "It increases activity to compensate": 4,
+        "It narrows focus to fewer actions": 3
+      }
+    },
+    {
+      "id": "Q3",
+      "type": "choice",
+      "domain": "coherence",
+      "construct": "effort_to_progress",
+      "grammar": "emergence",
+      "skin": "general",
+      "prompt": "When effort does not reliably translate into progress, what emerges?",
+      "choices": [
+        "Process refinement",
+        "Frustration without action",
+        "Experimentation",
+        "Reduced engagement",
+        "Overextension"
+      ],
+      "weights": {
+        "Process refinement": 2,
+        "Frustration without action": 4,
+        "Experimentation": 2,
+        "Reduced engagement": 5,
+        "Overextension": 4
+      }
+    },
+    {
+      "id": "Q4",
+      "type": "choice",
+      "domain": "control",
+      "construct": "constraint_clarity",
+      "grammar": "signal_shift",
+      "skin": "general",
+      "prompt": "When constraints are unclear, what tends to change first?",
+      "choices": [
+        "Decision speed",
+        "Confidence in choices",
+        "Internal coordination",
+        "Willingness to commit",
+        "Attention distribution"
+      ],
+      "weights": {
+        "Decision speed": 3,
+        "Confidence in choices": 4,
+        "Internal coordination": 5,
+        "Willingness to commit": 4,
+        "Attention distribution": 3
+      }
+    },
+    {
+      "id": "Q5",
+      "type": "choice",
+      "domain": "persistence",
+      "construct": "sustained_strain",
+      "grammar": "time_course",
+      "skin": "general",
+      "prompt": "When strain persists without a clear endpoint, what shifts first?",
+      "choices": [
+        "Energy allocation",
+        "Error tolerance",
+        "Planning horizon",
+        "Communication clarity",
+        "Internal alignment"
+      ],
+      "weights": {
+        "Energy allocation": 4,
+        "Error tolerance": 3,
+        "Planning horizon": 5,
+        "Communication clarity": 4,
+        "Internal alignment": 5
+      }
+    },
+    {
+      "id": "Q6",
+      "type": "choice",
+      "domain": "adaptation",
+      "construct": "failed_correction",
+      "grammar": "response_chain",
+      "skin": "general",
+      "prompt": "When corrective actions do not produce relief, what follows?",
+      "choices": [
+        "New strategies are tested",
+        "Existing methods are intensified",
+        "Scope is reduced",
+        "Doubt increases",
+        "Stability degrades"
+      ],
+      "weights": {
+        "New strategies are tested": 2,
+        "Existing methods are intensified": 4,
+        "Scope is reduced": 3,
+        "Doubt increases": 5,
+        "Stability degrades": 5
+      }
+    },
+    {
+      "id": "Q7",
+      "type": "choice",
+      "domain": "recovery",
+      "construct": "capacity_recovery",
+      "grammar": "resource_signal",
+      "skin": "general",
+      "prompt": "When recovery time shortens repeatedly, what changes?",
+      "choices": [
+        "Throughput",
+        "Precision",
+        "Risk tolerance",
+        "Adaptability",
+        "Sustainability"
+      ],
+      "weights": {
+        "Throughput": 3,
+        "Precision": 4,
+        "Risk tolerance": 3,
+        "Adaptability": 2,
+        "Sustainability": 5
+      }
+    },
+    {
+      "id": "Q8",
+      "type": "choice",
+      "domain": "error",
+      "construct": "error_accumulation",
+      "grammar": "system_state",
+      "skin": "general",
+      "prompt": "When errors accumulate faster than they can be resolved, what emerges?",
+      "choices": [
+        "Workarounds",
+        "Process breakdown",
+        "Blame shifting",
+        "Increased oversight",
+        "System fatigue"
+      ],
+      "weights": {
+        "Workarounds": 3,
+        "Process breakdown": 5,
+        "Blame shifting": 4,
+        "Increased oversight": 3,
+        "System fatigue": 5
       }
     }
   ]
-    }
-        "id": "Q3",
-        "domain": "coherence",
-        "construct": "effort_to_progress",
-        "grammar": "emergence",
-        "skin": "general",
-        "prompt": "When effort does not reliably translate into progress, what emerges?",
-        "options": [
-            "Process refinement",
-            "Frustration without action",
-            "Experimentation",
-            "Reduced engagement",
-            "Overextension",
-        ],
-    },
-    {
-        "id": "Q4",
-        "domain": "control",
-        "construct": "constraint_clarity",
-        "grammar": "signal_shift",
-        "skin": "general",
-        "prompt": "When constraints are unclear, what tends to change first?",
-        "options": [
-            "Decision speed",
-            "Confidence in choices",
-            "Internal coordination",
-            "Willingness to commit",
-            "Attention distribution",
-        ],
-    },
-    {
-        "id": "Q5",
-        "domain": "persistence",
-        "construct": "sustained_strain",
-        "grammar": "time_course",
-        "skin": "general",
-        "prompt": "When strain persists without a clear endpoint, what shifts first?",
-        "options": [
-            "Energy allocation",
-            "Error tolerance",
-            "Planning horizon",
-            "Communication clarity",
-            "Internal alignment",
-        ],
-    },
-    {
-        "id": "Q6",
-        "domain": "adaptation",
-        "construct": "failed_correction",
-        "grammar": "response_chain",
-        "skin": "general",
-        "prompt": "When corrective actions do not produce relief, what follows?",
-        "options": [
-            "New strategies are tested",
-            "Existing methods are intensified",
-            "Scope is reduced",
-            "Doubt increases",
-            "Stability degrades",
-        ],
-    },
-    {
-        "id": "Q7",
-        "domain": "recovery",
-        "construct": "capacity_recovery",
-        "grammar": "resource_signal",
-        "skin": "general",
-        "prompt": "When recovery time shortens repeatedly, what changes?",
-        "options": [
-            "Throughput",
-            "Precision",
-            "Risk tolerance",
-            "Adaptability",
-            "Sustainability",
-        ],
-    },
-    {
-        "id": "Q8",
-        "domain": "error",
-        "construct": "error_accumulation",
-        "grammar": "system_state",
-        "skin": "general",
-        "prompt": "When errors accumulate faster than they can be resolved, what emerges?",
-        "options": [
-            "Improved detection",
-            "Local fixes",
-            "Systemic drift",
-            "Defensive behavior",
-            "Structural instability",
-        ],
-    },
-    {
-        "id": "Q9",
-        "domain": "direction",
-        "construct": "short_long_conflict",
-        "grammar": "trajectory",
-        "skin": "general",
-        "prompt": "When short-term actions do not support long-term direction, what happens?",
-        "options": [
-            "Direction is clarified",
-            "Tension accumulates",
-            "Long-term goals are deferred",
-            "Short-term wins dominate",
-            "Coherence erodes",
-        ],
-    },
-    {
-        "id": "Q10",
-        "domain": "boundaries",
-        "construct": "boundary_enforcement",
-        "grammar": "pressure_response",
-        "skin": "general",
-        "prompt": "When boundaries are tested repeatedly, what happens?",
-        "options": [
-            "Boundaries strengthen",
-            "Exceptions multiply",
-            "Enforcement weakens",
-            "Friction increases",
-            "Structure collapses",
-        ],
-    },
-    {
-        "id": "Q11",
-        "domain": "ownership",
-        "construct": "responsibility_control_gap",
-        "grammar": "imbalance",
-        "skin": "general",
-        "prompt": "When responsibility exceeds control, what emerges?",
-        "options": [
-            "Innovation",
-            "Stress",
-            "Detachment",
-            "Overreach",
-            "Reprioritization",
-        ],
-    },
-    {
-        "id": "Q12",
-        "domain": "signal",
-        "construct": "signal_trust",
-        "grammar": "signal_priority",
-        "skin": "general",
-        "prompt": "When signals are mixed, which are trusted most?",
-        "options": [
-            "Quantitative data",
-            "Qualitative feedback",
-            "Intuition",
-            "Authority",
-            "Momentum",
-        ],
-    },
-]
+}
